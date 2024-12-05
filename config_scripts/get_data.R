@@ -1,3 +1,10 @@
+if (!requireNamespace("here", quietly = TRUE)) {
+  install.packages("here")
+}
+library(here)
+source(here("config_scripts/restore_r_env_func.R"))
+custom_restore()
+
 message("\n==== Installing all necessary packages (restoring from `renv.lock` file) ====\nPRESS 1 ON PROMPT\n")
 renv::restore()
 
@@ -5,9 +12,6 @@ renv::restore()
 if (!requireNamespace("GEOquery", quietly = TRUE)) {
   install.packages("BiocManager")
   BiocManager::install("GEOquery")
-}
-if (!requireNamespace("here", quietly = TRUE)) {
-  install.packages("here")
 }
 
 library(GEOquery)
