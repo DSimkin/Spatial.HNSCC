@@ -3,10 +3,9 @@ if (!requireNamespace("here", quietly = TRUE)) {
 }
 library(here)
 source(here("config_scripts/restore_r_env_func.R"))
+message("\n==== Installing all necessary packages (restoring from `renv.lock` file) ====\n")
+Sys.sleep(5)
 custom_restore()
-
-message("\n==== Installing all necessary packages (restoring from `renv.lock` file) ====\nPRESS 1 ON PROMPT\n")
-renv::restore()
 
 # Load necessary packages
 if (!requireNamespace("GEOquery", quietly = TRUE)) {
@@ -16,8 +15,6 @@ if (!requireNamespace("GEOquery", quietly = TRUE)) {
 
 library(GEOquery)
 library(here)
-
-renv::restore()
 
 
 # Define GEO accession number
