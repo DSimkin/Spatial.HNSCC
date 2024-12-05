@@ -1,3 +1,6 @@
+message("\n==== Installing all necessary packages (restoring from `renv.lock` file) ====\nPRESS 1 ON PROMPT\n")
+renv::restore()
+
 # Load necessary packages
 if (!requireNamespace("GEOquery", quietly = TRUE)) {
   install.packages("BiocManager")
@@ -10,7 +13,6 @@ if (!requireNamespace("here", quietly = TRUE)) {
 library(GEOquery)
 library(here)
 
-message("\n==== Installing all necessary packages (restoring from `renv.lock` file) ====\nPRESS 1 ON PROMPT\n")
 renv::restore()
 
 
