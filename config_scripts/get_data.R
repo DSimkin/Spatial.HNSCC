@@ -10,6 +10,10 @@ if (!requireNamespace("here", quietly = TRUE)) {
 library(GEOquery)
 library(here)
 
+message("\n==== Installing all necessary packages (restoring from `renv.lock` file) ====\nPRESS 1 ON PROMPT\n")
+renv::restore()
+
+
 # Define GEO accession number
 geo_accession <- "GSE268014"    # Spatial HNSCC GEO accession
 
