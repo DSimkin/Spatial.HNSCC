@@ -13,10 +13,7 @@ data_dir <- here("data")
 if (!dir.exists(data_dir)) {
   dir.create(data_dir)
 }
-
-# Download the data
-getGEOSuppFiles(GEO = geo_accession, baseDir = data_dir)
-data_dir <- file.path(data_dir, geo_accession)
+file.rename(file.path(here(), list.files(here(), pattern = "^GSE268014")), file.path(here("data"), list.files(here(), pattern = "^GSE268014")))
 
 # Extract files if compressed
 if(grepl(".tar$", list.files(data_dir))) {
