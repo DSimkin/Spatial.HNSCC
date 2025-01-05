@@ -21,7 +21,7 @@ state_cols <- read.delim(file = here("aux_data/state_col_tab_extend.tsv"), sep =
 state_cols <- setNames(state_cols$V2, state_cols$V1)
 
 
-# sample_parameters <- sample_parameters %>% dplyr::filter(Sample %in% basename(list.dirs(here("data"), recursive = TRUE)))
+
 
 # Zone Classification & Enrichment ----------------------------------------
 
@@ -33,15 +33,15 @@ state_per_zone_prop <- list()
 
 for(i in seq_along(sample_parameters$Sample)) {
   message(paste0("Processing sample: ", sample_parameters$Sample[[i]]))
-
+  
   path <- paste(here("data"), sample_parameters$Site[[i]], sample_parameters$Sample[[i]], sep = "/")
   spots_positions <- read.csv(paste0(path, "/spatial/tissue_positions_list.csv"), header = FALSE)
   colnames(spots_positions) <- c("SpotID", "in_tissue", "array_row", "array_col", "pxl_row_in_fullres", "pxl_col_in_fullres")
-
+  
   # Add score-based deconvolution results to the metadata
   decon_mat <- decon_mats_ls[[sample_parameters$Sample[[i]]]]
   metadata_spots <- tibble(SpotID = rownames(decon_mat)) %>% left_join(., spots_positions, by = "SpotID")
-
+  
   # Classify zones
   zones <- classify_zones(metadata_spots, decon_mat, with_plots = TRUE, zones_limits = c(3, 6), stromal_prop_cutoff = 0.7, rm_distant_spots = TRUE)
   EpiStroma_plots[[i]] <- zones$EpiStroma_plot
@@ -49,7 +49,7 @@ for(i in seq_along(sample_parameters$Sample)) {
   Zones_plots[[i]] <- zones$Zones_plot
   names(Zones_plots)[i] <- sample_parameters$Sample[[i]]
   merged_meta <- zones$merged_meta
-
+  
   # State enrichment per zone
   zone_enrich <- zone_enrichment(merged_meta, decon_mat, min_spots_per_zone = 70, set_colors = state_cols)
   abundance_tabs[[i]] <- zone_enrich$mean_zone_abund
@@ -81,7 +81,7 @@ metadata <- dplyr::left_join(metadata, zones_meta, by = "Key")
 
 # Plot per sample states enrichment
 p <- Enrichment_plots$P5736 + theme(axis.title.x = element_blank(), text = element_text(size = 14), legend.title = element_text(size = 16),
-                                                 panel.border = element_rect(fill = NA, colour = "black", linewidth = 2), aspect.ratio = 1.4, plot.margin = margin(0.2, , 0.2, 0.4, "cm")) +
+                                    panel.border = element_rect(fill = NA, colour = "black", linewidth = 2), aspect.ratio = 1.4, plot.margin = margin(0.2, , 0.2, 0.4, "cm")) +
   ylab("Z-Score") + guides(color = guide_legend(override.aes = list(linewidth = 7))) +
   scale_x_discrete(expand = c(0, 0), labels = function(x) gsub("_", " ", x, fixed = TRUE)) + scale_y_continuous(expand = c(0, 0))  # optionally add + theme_bw() befor theme()
 ggplot2::ggsave(filename = here("results/Paper_Figures/Main_figs/Fig_4a_right.pdf"), device = "pdf", plot = p, dpi = 300)
@@ -206,7 +206,7 @@ get_pEMT_grouping <- lapply(sample_parameters$Sample, function(samp) {
                                          pEMT > 0.25 & Inflammatory > 0 & Fibroblast == 0 ~ "pEMT-INF",
                                          pEMT > 0.25 & Fibroblast > 0 & Inflammatory > 0 ~ "pEMT-Both",
                                          pEMT > 0.25 & Fibroblast == 0 & Inflammatory == 0 ~ "pEMT-None"))
-
+  
   samp_meta <- samp_meta %>% dplyr::mutate(pEMT_Neighb = ifelse(rowSums(across(starts_with("Neighb_"), ~. %in% "pEMT")) != 0, TRUE, FALSE),
                                            INF_Neighb = ifelse(rowSums(across(starts_with("Neighb_"), ~. %in% "Inflammatory")) != 0, TRUE, FALSE),
                                            Fibro_Neighb = ifelse(rowSums(across(starts_with("Neighb_"), ~. %in% "Fibroblast")) != 0, TRUE, FALSE)) %>%
@@ -352,7 +352,7 @@ dev.off()
 
 ## Merge heatmap with annotation bars
 p_hm <- gmap(plotting_df, x = Var2, y = Var1, fill = value, limits = c(-4, 4), ratio = NULL, y.name = "", x.labels = NULL, geom = "raster", y.labels = NULL,
-     axis.rel = 1.5, legend.title.rel = 1.25, legend.rel = 1.0, legend.height = 5, legend.width = 0.6, x.num = F, y.num = F, angle = T) +
+             axis.rel = 1.5, legend.title.rel = 1.25, legend.rel = 1.0, legend.height = 5, legend.width = 0.6, x.num = F, y.num = F, angle = T) +
   theme(axis.ticks = element_blank(), axis.text = element_blank(), axis.title = element_blank(), panel.border = element_rect(linewidth = 1),
         panel.spacing = unit(0, "lines"), plot.margin = unit(c(0, 0, 0, 0), "null"), panel.margin = unit(c(0, 0, 0, 0), "null"))
 p_gene_anno <- annotate_genes + cowplot::theme_nothing()
@@ -453,7 +453,7 @@ p <- per_sample_states %>%
   dplyr::mutate(pEMT_Pattern = factor(dplyr::case_when(samples_metadata$pEMT_Pattern[samples_metadata$Sample == Var2] == "Core_Enriched" ~ "Core_Enriched",
                                                        samples_metadata$pEMT_Pattern[samples_metadata$Sample == Var2] == "Margin_Enriched" ~ paste0(samples_metadata$pEMT_Pattern[samples_metadata$Sample == Var2], ".", samples_metadata$HPV[samples_metadata$Sample == Var2]),
                                                        samples_metadata$pEMT_Pattern[samples_metadata$Sample == Var2] == "none" ~ NA),
-                                             levels = c("Margin_Enriched.HPVneg", "Margin_Enriched.HPVpos", "Core_Enriched"))) %>%
+                                      levels = c("Margin_Enriched.HPVneg", "Margin_Enriched.HPVpos", "Core_Enriched"))) %>%
   ggplot(aes(x = fct_reorder(Var2, Ord), y = Malignant, fill = Var1)) +
   geom_col(position = position_stack(reverse = TRUE)) +
   geom_col(aes(y = `Non-Malignant`), position = "stack") +
@@ -467,6 +467,82 @@ ggplot2::ggsave(filename = here("results/Paper_Figures/Supp_figs/SFig_4f_full.pd
 
 
 
+# Neighborhood Analysis ---------------------------------------------------
+
+source(here("analysis_scripts/functions/Connectivity_Functions.R"))
+
+# Calculate neighboring spots proportions for each cell-type/cell-state
+neighbs_stats <- neighbor_spot_props(metadata = metadata, zone = "All", site = "All", samples = "All",
+                                     zone_by = "EpiStroma", n_cores = 12, plot_perm_distr = TRUE, n_perm = 10000, 
+                                     filter_signif = TRUE, zscore_thresh = 1)
+# saveRDS(neighbs_stats, file = here("results/Generated_Data/all_samples_connectivity_stats_corrected.rds"))
+
+neighbs_stats <- readRDS(file = here("results/Generated_Data/all_samples_connectivity_stats_corrected.rds"))
+signif_neighbs <- do.call(rbind.data.frame, neighbs_stats$Top_Neighbs)
+
+# Plot drawing vs repelling interactions on a heatmap
+plotting_df <- signif_neighbs %>% dplyr::select(Ref_State, Neighb_State, Z_Score, Interaction_Type) %>% `rownames<-`(NULL) %>% 
+  dplyr::mutate(Ref_State = stringr::str_replace_all(Ref_State, pattern = "TNF_Signaling", replacement = "Inflammatory"),
+                Neighb_State = stringr::str_replace_all(Neighb_State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
+plotting_df <- plotting_df %>% group_by(Ref_State, Neighb_State, Interaction_Type) %>% summarise(mean = mean(Z_Score), n = n()) %>% 
+  group_by(Ref_State, Neighb_State) %>% arrange(-n) %>% slice(1) %>% ungroup() %>%
+  complete(Ref_State = names(MPs), Neighb_State = names(MPs), fill = list(mean = NA, n = 0))
+order_axes <- c("Senescence", "Secretory", "pEMT", "Hypoxia", "Inflammatory", "LowQ", "Epithelial", "Cell_Cycle",
+                "B_cell", "T_cell", "Macrophage", "Complement", "Endothelial", "Fibroblast", "Skeletal_Muscle")
+plotting_df$Ref_State <- factor(plotting_df$Ref_State, levels = order_axes)
+plotting_df$Neighb_State <- factor(plotting_df$Neighb_State, levels = order_axes)
+plotting_df$Filt_n <- ifelse(plotting_df$n < 4, NA, plotting_df$n)
+
+# Export neighborhood statics to a csv file for network construction via cytoscape
+uni_dir_graph <- plotting_df %>% dplyr::mutate(Ref_State = as.character(Ref_State), Neighb_State = as.character(Neighb_State)) %>% 
+  dplyr::mutate(Pair = paste0(pmin(Ref_State, Neighb_State), ".", pmax(Ref_State, Neighb_State))) %>% 
+  dplyr::group_by(Pair) %>% dplyr::mutate(pair_n = n()) %>% dplyr::filter(pair_n > 1) %>% 
+  dplyr::mutate(Effect_Size = mean(mean), Signif_n = mean(n)) %>% ungroup() %>% distinct(Pair, .keep_all = TRUE) %>% 
+  dplyr::select(-c(n, Pair, pair_n, mean)) %>% dplyr::filter(!is.na(Filt_n))
+
+write.csv(uni_dir_graph, file = here("results/Generated_Data/Filtered_State_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
+
+plot_df <- uni_dir_graph %>% 
+  dplyr::mutate(Pair = paste0(pmin(Ref_State, Neighb_State), ".", pmax(Ref_State, Neighb_State)))
+plot_mat <- matrix(data = NA, nrow = length(order_axes), ncol = length(order_axes), dimnames = list(order_axes, order_axes)) -> signif_n_vec
+plot_mat[upper.tri(plot_mat, diag = FALSE)] <- sapply(which(upper.tri(plot_mat, diag = FALSE)), function(i) {
+  k <- arrayInd(i, dim(plot_mat))
+  pair_i <- mapply(`[[`, dimnames(plot_mat), k)
+  pair_i <- paste0(pmin(pair_i[1], pair_i[2]), ".", pmax(pair_i[1], pair_i[2]))
+  if(pair_i %in% plot_df$Pair) {
+    plot_mat[i] <- plot_df$Effect_Size[plot_df$Pair == pair_i]
+  } else {
+    plot_mat[i] <- 0
+  }
+})
+signif_n_vec[upper.tri(signif_n_vec, diag = FALSE)] <- sapply(which(upper.tri(signif_n_vec, diag = FALSE)), function(i) {
+  k <- arrayInd(i, dim(signif_n_vec))
+  pair_i <- mapply(`[[`, dimnames(signif_n_vec), k)
+  pair_i <- paste0(pmin(pair_i[1], pair_i[2]), ".", pmax(pair_i[1], pair_i[2]))
+  if(pair_i %in% plot_df$Pair) {
+    signif_n_vec[i] <- plot_df$Signif_n[plot_df$Pair == pair_i]
+  } else {
+    signif_n_vec[i] <- NA
+  }
+})
+
+hm_cols = c("#053061", "#2166ac", "#4393c3", "#92c5de", "#d1e5f0", "#f7f7f7", "#fddbc7", "#f4a582", "#d6604d", "#b2182b", "#67001f")
+scale_circ_rad <- signif_n_vec[upper.tri(signif_n_vec, diag = FALSE)] / 24 
+corrplot::corrplot(plot_mat, method = "circle", type = "upper", col = hm_cols, tl.col = "black", tl.srt = 45, tl.cex = 1.2,
+                   order = "original", is.corr = FALSE, diag = FALSE, size_vector = scale_circ_rad, outline = TRUE)
+grab_grob <- function(){
+  gridGraphics::grid.echo()
+  grid::grid.grab()
+}
+g <- grab_grob()
+# save correlation matrix colors to a vector, then make coloured matrix grob transparent
+get_circ_rad <- grid::getGrob(g, grid::gPath("circle"), grep = TRUE)[["r"]]
+g <- grid::editGrob(g, gPath("circle"), grep = TRUE, r = get_circ_rad * 1.3)
+p <- ggplotify::as.ggplot(g)
+ggplot2::ggsave(filename = here("results/Paper_Figures/Main_figs/Fig_3a_right.pdf"), plot = p, device = "pdf", dpi = 300, height = 10, width = 12)
+
+
+
 
 # Coherence Analysis ------------------------------------------------------
 
@@ -474,6 +550,12 @@ source(here("analysis_scripts/functions/Connectivity_Functions.R"))
 # Load merged metadata tibble
 metadata <- readRDS(file = here("metadata/merged_metadata_Extend.rds"))
 
+
+# Calculate MPs coherence scores
+coherence_scores <- calc_spatial_coherence(metadata = metadata, spot_class = "MPid", zone = "All", site = "All", samples = "All", 
+                                           n_cores = 20, n_perm = 100)
+# saveRDS(coherence_scores, file = here("results/Generated_Data/all_samples_MPs_coherence_scores.rds"))
+# coherence_scores <- readRDS(file = here("results/Generated_Data/all_samples_MPs_coherence_scores.rds"))
 
 # Classify sample histological growth pattern using coherence at the level of malignancy status
 malig_coherence_scores <- calc_spatial_coherence(metadata = metadata, spot_class = "binCNAstatus", zone = "All", site = "All", samples = "All",
@@ -486,11 +568,11 @@ samp_levels <- names(sort(do.call(cbind.data.frame, malig_coherence_scores) %>% 
 all_CNAstat_plots <- lapply(seq_along(sample_parameters$Sample), function(i) {
   # print the name of the sample been currently processed
   message(paste0("Processing sample: ", sample_parameters$Sample[[i]]))
-
+  
   # Load spatial image object
   data_dir <- paste(here("data"), sample_parameters$Site[[i]], sample_parameters$Sample[[i]], sep = "/")
   spatial_image <- load_spatial_image(paste0(data_dir, "/spatial"))
-
+  
   # Subset metadata to include only the sample you need
   samp_metadata <- metadata[metadata$Sample == sample_parameters$Sample[[i]], ]
   p <- plot_spatial_features(metadata = samp_metadata, image_obj = spatial_image, color_by = "binCNAstatus", cols = setNames(c("#FCF2B4FF", "#FD9969FF", "#51127CFF"), c("Non_Malignant", "Mixed", "Malignant")),
@@ -622,3 +704,204 @@ states_per_GP_stats <- metadata %>%
 prop_stat_tab <- test_state_prop_diff(states_per_GP_stats$MPid, states_per_GP_stats$Sample, states_per_GP_stats$GP, transform = NULL)
 write.csv(prop_stat_tab, file = here("results/Generated_Data/State_Proportion_Per_Growth_Pattern_Ttest_Results.csv"))
 
+
+
+
+# Merged State Network Graphs ---------------------------------------------
+
+neighbs_stats <- readRDS(file = here("results/Generated_Data/all_samples_connectivity_stats_corrected.rds"))
+
+### Separate by HPV status
+# HPV positive samples (total of 8 samples)
+hpv_pos_neighbs <- do.call(rbind.data.frame, neighbs_stats$Top_Neighbs[samples_metadata$Sample[samples_metadata$HPV == "HPVpos"]])
+plotting_df <- hpv_pos_neighbs %>% dplyr::select(Ref_State, Neighb_State, Z_Score, Interaction_Type) %>% `rownames<-`(NULL) %>% 
+  dplyr::mutate(Ref_State = stringr::str_replace_all(Ref_State, pattern = "TNF_Signaling", replacement = "Inflammatory"),
+                Neighb_State = stringr::str_replace_all(Neighb_State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
+plotting_df <- plotting_df %>% group_by(Ref_State, Neighb_State, Interaction_Type) %>% summarise(mean = mean(Z_Score), n = n()) %>% 
+  group_by(Ref_State, Neighb_State) %>% arrange(-n) %>% slice(1) %>% ungroup() %>%
+  complete(Ref_State = names(MPs), Neighb_State = names(MPs), fill = list(mean = NA, n = 0))
+order_axes <- c("Senescence", "Secretory", "pEMT", "Hypoxia", "Inflammatory", "LowQ", "Epithelial", "Cell_Cycle",
+                "B_cell", "T_cell", "Macrophage", "Complement", "Endothelial", "Fibroblast", "Skeletal_Muscle")
+plotting_df$Ref_State <- factor(plotting_df$Ref_State, levels = order_axes)
+plotting_df$Neighb_State <- factor(plotting_df$Neighb_State, levels = order_axes)
+plotting_df$Filt_n <- ifelse(plotting_df$n < 2, NA, plotting_df$n)
+
+uni_dir_graph <- plotting_df %>% dplyr::mutate(Ref_State = as.character(Ref_State), Neighb_State = as.character(Neighb_State)) %>% 
+  dplyr::mutate(Pair = paste0(pmin(Ref_State, Neighb_State), ".", pmax(Ref_State, Neighb_State))) %>% 
+  dplyr::group_by(Pair) %>% dplyr::mutate(pair_n = n()) %>% dplyr::filter(pair_n > 1) %>% 
+  dplyr::mutate(Effect_Size = mean(mean), Signif_n = mean(n)) %>% ungroup() %>% distinct(Pair, .keep_all = TRUE) %>% 
+  dplyr::select(-c(n, Pair, pair_n, mean)) %>% dplyr::filter(!is.na(Filt_n))
+
+write.csv(uni_dir_graph, file = here("results/Generated_Data/HPVpos_State_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)     # unidirected graph edges
+
+# HPV negative samples (total of 16 samples)
+hpv_neg_neighbs <- do.call(rbind.data.frame, neighbs_stats$Top_Neighbs[samples_metadata$Sample[samples_metadata$HPV == "HPVneg"]])
+plotting_df <- hpv_neg_neighbs %>% dplyr::select(Ref_State, Neighb_State, Z_Score, Interaction_Type) %>% `rownames<-`(NULL) %>% 
+  dplyr::mutate(Ref_State = stringr::str_replace_all(Ref_State, pattern = "TNF_Signaling", replacement = "Inflammatory"),
+                Neighb_State = stringr::str_replace_all(Neighb_State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
+plotting_df <- plotting_df %>% group_by(Ref_State, Neighb_State, Interaction_Type) %>% summarise(mean = mean(Z_Score), n = n()) %>% 
+  group_by(Ref_State, Neighb_State) %>% arrange(-n) %>% slice(1) %>% ungroup() %>%
+  complete(Ref_State = names(MPs), Neighb_State = names(MPs), fill = list(mean = NA, n = 0))
+order_axes <- c("Senescence", "Secretory", "pEMT", "Hypoxia", "Inflammatory", "LowQ", "Epithelial", "Cell_Cycle",
+                "B_cell", "T_cell", "Macrophage", "Complement", "Endothelial", "Fibroblast", "Skeletal_Muscle")
+plotting_df$Ref_State <- factor(plotting_df$Ref_State, levels = order_axes)
+plotting_df$Neighb_State <- factor(plotting_df$Neighb_State, levels = order_axes)
+plotting_df$Filt_n <- ifelse(plotting_df$n < 4, NA, plotting_df$n)
+
+uni_dir_graph <- plotting_df %>% dplyr::mutate(Ref_State = as.character(Ref_State), Neighb_State = as.character(Neighb_State)) %>% 
+  dplyr::mutate(Pair = paste0(pmin(Ref_State, Neighb_State), ".", pmax(Ref_State, Neighb_State))) %>% 
+  dplyr::group_by(Pair) %>% dplyr::mutate(pair_n = n()) %>% dplyr::filter(pair_n > 1) %>% 
+  dplyr::mutate(Effect_Size = mean(mean), Signif_n = mean(n)) %>% ungroup() %>% distinct(Pair, .keep_all = TRUE) %>% 
+  dplyr::select(-c(n, Pair, pair_n, mean)) %>% dplyr::filter(!is.na(Filt_n))
+
+write.csv(uni_dir_graph, file = here("results/Generated_Data/HPVneg_State_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
+
+
+### Separate by pEMT zone enrichment patterns
+# pEMT enriched in the core
+pattern_1_neighbs <- do.call(rbind.data.frame, neighbs_stats$Top_Neighbs[c("P5219", "P5624", "P5709", "P5418", "P5659", "P5909")])
+plotting_df <- pattern_1_neighbs %>% dplyr::select(Ref_State, Neighb_State, Z_Score, Interaction_Type) %>% `rownames<-`(NULL) %>% 
+  dplyr::mutate(Ref_State = stringr::str_replace_all(Ref_State, pattern = "TNF_Signaling", replacement = "Inflammatory"),
+                Neighb_State = stringr::str_replace_all(Neighb_State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
+plotting_df <- plotting_df %>% group_by(Ref_State, Neighb_State, Interaction_Type) %>% summarise(mean = mean(Z_Score), n = n()) %>% 
+  group_by(Ref_State, Neighb_State) %>% arrange(-n) %>% slice(1) %>% ungroup() %>%
+  complete(Ref_State = names(MPs), Neighb_State = names(MPs), fill = list(mean = NA, n = 0))
+order_axes <- c("Senescence", "Secretory", "pEMT", "Hypoxia", "Inflammatory", "LowQ", "Epithelial", "Cell_Cycle",
+                "B_cell", "T_cell", "Macrophage", "Complement", "Endothelial", "Fibroblast", "Skeletal_Muscle")
+plotting_df$Ref_State <- factor(plotting_df$Ref_State, levels = order_axes)
+plotting_df$Neighb_State <- factor(plotting_df$Neighb_State, levels = order_axes)
+plotting_df$Filt_n <- ifelse(plotting_df$n < 2, NA, plotting_df$n)
+
+uni_dir_graph <- plotting_df %>% dplyr::mutate(Ref_State = as.character(Ref_State), Neighb_State = as.character(Neighb_State)) %>% 
+  dplyr::mutate(Pair = paste0(pmin(Ref_State, Neighb_State), ".", pmax(Ref_State, Neighb_State))) %>% 
+  dplyr::group_by(Pair) %>% dplyr::mutate(pair_n = n()) %>% dplyr::filter(pair_n > 1) %>% 
+  dplyr::mutate(Effect_Size = mean(mean), Signif_n = mean(n)) %>% ungroup() %>% distinct(Pair, .keep_all = TRUE) %>% 
+  dplyr::select(-c(n, Pair, pair_n, mean)) %>% dplyr::filter(!is.na(Filt_n))
+
+write.csv(uni_dir_graph, file = here("results/Generated_Data/pEMT_CORE_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
+
+# pEMT enriched in the margin
+pattern_2_neighbs <- do.call(rbind.data.frame, neighbs_stats$Top_Neighbs[c("P5448", "P5707", "P5666", "P5684", "P5692", "P5710", "P5764", "P5766", "P5767", "P5756")])
+plotting_df <- pattern_2_neighbs %>% dplyr::select(Ref_State, Neighb_State, Z_Score, Interaction_Type) %>% `rownames<-`(NULL) %>% 
+  dplyr::mutate(Ref_State = stringr::str_replace_all(Ref_State, pattern = "TNF_Signaling", replacement = "Inflammatory"),
+                Neighb_State = stringr::str_replace_all(Neighb_State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
+plotting_df <- plotting_df %>% group_by(Ref_State, Neighb_State, Interaction_Type) %>% summarise(mean = mean(Z_Score), n = n()) %>% 
+  group_by(Ref_State, Neighb_State) %>% arrange(-n) %>% slice(1) %>% ungroup() %>%
+  complete(Ref_State = names(MPs), Neighb_State = names(MPs), fill = list(mean = NA, n = 0))
+order_axes <- c("Senescence", "Secretory", "pEMT", "Hypoxia", "Inflammatory", "LowQ", "Epithelial", "Cell_Cycle",
+                "B_cell", "T_cell", "Macrophage", "Complement", "Endothelial", "Fibroblast", "Skeletal_Muscle")
+plotting_df$Ref_State <- factor(plotting_df$Ref_State, levels = order_axes)
+plotting_df$Neighb_State <- factor(plotting_df$Neighb_State, levels = order_axes)
+plotting_df$Filt_n <- ifelse(plotting_df$n < 3, NA, plotting_df$n)
+
+uni_dir_graph <- plotting_df %>% dplyr::mutate(Ref_State = as.character(Ref_State), Neighb_State = as.character(Neighb_State)) %>% 
+  dplyr::mutate(Pair = paste0(pmin(Ref_State, Neighb_State), ".", pmax(Ref_State, Neighb_State))) %>% 
+  dplyr::group_by(Pair) %>% dplyr::mutate(pair_n = n()) %>% dplyr::filter(pair_n > 1) %>% 
+  dplyr::mutate(Effect_Size = mean(mean), Signif_n = mean(n)) %>% ungroup() %>% distinct(Pair, .keep_all = TRUE) %>% 
+  dplyr::select(-c(n, Pair, pair_n, mean)) %>% dplyr::filter(!is.na(Filt_n))
+
+write.csv(uni_dir_graph, file = here("results/Generated_Data/pEMT_MARGIN_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
+
+
+# Further separate pEMT margin enriched samples by their HPV status (remove pEMT depletion bias caused by majority of OP samples in pEMT margin pattern)
+## HPV-positive samples showing pEMT enriched in the margin pattern
+HPVpos_margin_neighbs <- do.call(rbind.data.frame, neighbs_stats$Top_Neighbs[c("P5692", "P5710", "P5764", "P5766", "P5767")])
+plotting_df <- HPVpos_margin_neighbs %>% dplyr::select(Ref_State, Neighb_State, Z_Score, Interaction_Type) %>% `rownames<-`(NULL) %>% 
+  dplyr::mutate(Ref_State = stringr::str_replace_all(Ref_State, pattern = "TNF_Signaling", replacement = "Inflammatory"),
+                Neighb_State = stringr::str_replace_all(Neighb_State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
+plotting_df <- plotting_df %>% group_by(Ref_State, Neighb_State, Interaction_Type) %>% summarise(mean = mean(Z_Score), n = n()) %>% 
+  group_by(Ref_State, Neighb_State) %>% arrange(-n) %>% slice(1) %>% ungroup() %>%
+  complete(Ref_State = names(MPs), Neighb_State = names(MPs), fill = list(mean = NA, n = 0))
+order_axes <- c("Senescence", "Secretory", "pEMT", "Hypoxia", "Inflammatory", "LowQ", "Epithelial", "Cell_Cycle",
+                "B_cell", "T_cell", "Macrophage", "Complement", "Endothelial", "Fibroblast", "Skeletal_Muscle")
+plotting_df$Ref_State <- factor(plotting_df$Ref_State, levels = order_axes)
+plotting_df$Neighb_State <- factor(plotting_df$Neighb_State, levels = order_axes)
+plotting_df$Filt_n <- ifelse(plotting_df$n < 2, NA, plotting_df$n)
+
+uni_dir_graph <- plotting_df %>% dplyr::mutate(Ref_State = as.character(Ref_State), Neighb_State = as.character(Neighb_State)) %>% 
+  dplyr::mutate(Pair = paste0(pmin(Ref_State, Neighb_State), ".", pmax(Ref_State, Neighb_State))) %>% 
+  dplyr::group_by(Pair) %>% dplyr::mutate(pair_n = n()) %>% dplyr::filter(pair_n > 1) %>% 
+  dplyr::mutate(Effect_Size = mean(mean), Signif_n = mean(n)) %>% ungroup() %>% distinct(Pair, .keep_all = TRUE) %>% 
+  dplyr::select(-c(n, Pair, pair_n, mean)) %>% dplyr::filter(!is.na(Filt_n))
+
+write.csv(uni_dir_graph, file = here("results/Generated_Data/HPV_Positive_pEMT_MARGIN_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
+
+## Oral and Laryngeal samples showing pEMT enriched in the margin pattern
+HPVneg_margin_neighbs <- do.call(rbind.data.frame, neighbs_stats$Top_Neighbs[c("P5448", "P5707", "P5666", "P5684", "P5756")])
+plotting_df <- HPVneg_margin_neighbs %>% dplyr::select(Ref_State, Neighb_State, Z_Score, Interaction_Type) %>% `rownames<-`(NULL) %>% 
+  dplyr::mutate(Ref_State = stringr::str_replace_all(Ref_State, pattern = "TNF_Signaling", replacement = "Inflammatory"),
+                Neighb_State = stringr::str_replace_all(Neighb_State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
+plotting_df <- plotting_df %>% group_by(Ref_State, Neighb_State, Interaction_Type) %>% summarise(mean = mean(Z_Score), n = n()) %>% 
+  group_by(Ref_State, Neighb_State) %>% arrange(-n) %>% slice(1) %>% ungroup() %>%
+  complete(Ref_State = names(MPs), Neighb_State = names(MPs), fill = list(mean = NA, n = 0))
+order_axes <- c("Senescence", "Secretory", "pEMT", "Hypoxia", "Inflammatory", "LowQ", "Epithelial", "Cell_Cycle",
+                "B_cell", "T_cell", "Macrophage", "Complement", "Endothelial", "Fibroblast", "Skeletal_Muscle")
+plotting_df$Ref_State <- factor(plotting_df$Ref_State, levels = order_axes)
+plotting_df$Neighb_State <- factor(plotting_df$Neighb_State, levels = order_axes)
+plotting_df$Filt_n <- ifelse(plotting_df$n < 2, NA, plotting_df$n)
+
+uni_dir_graph <- plotting_df %>% dplyr::mutate(Ref_State = as.character(Ref_State), Neighb_State = as.character(Neighb_State)) %>% 
+  dplyr::mutate(Pair = paste0(pmin(Ref_State, Neighb_State), ".", pmax(Ref_State, Neighb_State))) %>% 
+  dplyr::group_by(Pair) %>% dplyr::mutate(pair_n = n()) %>% dplyr::filter(pair_n > 1) %>% 
+  dplyr::mutate(Effect_Size = mean(mean), Signif_n = mean(n)) %>% ungroup() %>% distinct(Pair, .keep_all = TRUE) %>% 
+  dplyr::select(-c(n, Pair, pair_n, mean)) %>% dplyr::filter(!is.na(Filt_n))
+
+write.csv(uni_dir_graph, file = here("results/Generated_Data/HPV_Negative_pEMT_MARGIN_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
+
+
+
+### Merge all unigraph networks
+network_ls <- list(Main = read.csv(file = here("results/Generated_Data/Filtered_State_Neighborhood_Network_corrected.csv")) %>% 
+                     dplyr::mutate(Alpha = abs(Effect_Size)) %>% dplyr::rename_with(~paste(., "ALL", sep = "."), 3:ncol(.)),
+                   HPVpos = read.csv(file = here("results/Generated_Data/HPVpos_State_Neighborhood_Network_corrected.csv")) %>% 
+                     dplyr::mutate(Alpha = abs(Effect_Size)) %>% dplyr::rename_with(~paste(., "HPVpos", sep = "."), 3:ncol(.)),
+                   HPVneg = read.csv(file = here("results/Generated_Data/HPVneg_State_Neighborhood_Network_corrected.csv")) %>% 
+                     dplyr::mutate(Alpha = abs(Effect_Size)) %>% dplyr::rename_with(~paste(., "HPVneg", sep = "."), 3:ncol(.)),
+                   pEMT_core = read.csv(file = here("results/Generated_Data/pEMT_CORE_Neighborhood_Network_corrected.csv")) %>% 
+                     dplyr::mutate(Alpha = abs(Effect_Size)) %>% dplyr::rename_with(~paste(., "pEMTcore", sep = "."), 3:ncol(.)),
+                   pEMT_margin = read.csv(file = here("results/Generated_Data/pEMT_MARGIN_Neighborhood_Network_corrected.csv")) %>% 
+                     dplyr::mutate(Alpha = abs(Effect_Size)) %>% dplyr::rename_with(~paste(., "pEMTmargin", sep = "."), 3:ncol(.)),
+                   OP_pEMT_margin = read.csv(file = here("results/Generated_Data/HPV_Positive_pEMT_MARGIN_Neighborhood_Network_corrected.csv")) %>% 
+                     dplyr::mutate(Alpha = abs(Effect_Size)) %>% dplyr::rename_with(~paste(., "HPVpos_pEMTmargin", sep = "."), 3:ncol(.)),
+                   NON_OP_pEMT_margin = read.csv(file = here("results/Generated_Data/HPV_Negative_pEMT_MARGIN_Neighborhood_Network_corrected.csv")) %>% 
+                     dplyr::mutate(Alpha = abs(Effect_Size)) %>% dplyr::rename_with(~paste(., "HPVneg_pEMTmargin", sep = "."), 3:ncol(.)))
+merged_network <- network_ls %>% reduce(full_join, by = c("Ref_State" = "Ref_State", "Neighb_State" = "Neighb_State")) %>% 
+  dplyr::filter(!Ref_State %in% c("LowQ", "Skeletal_Muscle", "Secretory"), !Neighb_State %in% c("LowQ", "Skeletal_Muscle", "Secretory"))
+merged_network <- merged_network %>% dplyr::mutate(IDnames = paste0(Ref_State, " (interacts with) ", Neighb_State))
+# write.csv(merged_network, file = here("results/Generated_Data/MERGED_State_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
+
+group_props <- lapply(c("HPVpos", "HPVneg"), function(hpv) {
+  as.data.frame(table(metadata$MPid[metadata$Sample %in% samples_metadata$Sample[samples_metadata$HPV == hpv]])) %>% 
+    dplyr::mutate(State_Prop = Freq / sum(Freq)) %>% dplyr::pull(State_Prop)
+})
+names(group_props) <- c("HPVpos", "HPVneg")
+group_props$pEMTcore <- as.data.frame(table(metadata$MPid[metadata$Sample %in% c("P5219", "P5624", "P5709", "P5418", "P5659", "P5909")])) %>% 
+  dplyr::mutate(State_Prop = Freq / sum(Freq)) %>% dplyr::pull(State_Prop)
+group_props$pEMTmargin <- as.data.frame(table(metadata$MPid[metadata$Sample %in% c("P5448", "P5707", "P5666", "P5684", "P5692", "P5710", "P5764", "P5766", "P5767", "P5756")])) %>% 
+  dplyr::mutate(State_Prop = Freq / sum(Freq)) %>% dplyr::pull(State_Prop)
+group_props$HPVpos_pEMTmargin <- as.data.frame(table(metadata$MPid[metadata$Sample %in% c("P5692", "P5710", "P5764", "P5766", "P5767")])) %>% 
+  dplyr::mutate(State_Prop = Freq / sum(Freq)) %>% dplyr::pull(State_Prop)
+group_props$HPVneg_pEMTmargin <- as.data.frame(table(metadata$MPid[metadata$Sample %in% c("P5448", "P5707", "P5666", "P5684", "P5756")])) %>% 
+  dplyr::mutate(State_Prop = Freq / sum(Freq)) %>% dplyr::pull(State_Prop)
+group_props$Main <- as.data.frame(table(metadata$MPid)) %>% 
+  dplyr::mutate(State_Prop = Freq / sum(Freq)) %>% dplyr::pull(State_Prop)
+group_props_df <- cbind.data.frame(group_props) %>% 
+  dplyr::mutate(State = names(table(metadata$MPid)), .before = 1) %>% 
+  dplyr::filter(!State %in% c("LowQ", "Skeletal_Muscle", "Secretory_Norm", "Secretory_Malig")) #%>% `rownames<-`(names(table(metadata$MPid)))
+# Rescale the proportions to 1 after the removal of "LowQ", "Skeletal_Muscle" and "Secretory" states.
+group_props_df <- group_props_df %>% dplyr::mutate(across(where(is.numeric), ~ .x / sum(.x)))
+
+coherence_scores <- readRDS(file = here("results/Generated_Data/all_samples_MPs_coherence_scores.rds"))
+states <- do.call(cbind.data.frame, coherence_scores) %>% rownames
+mp_coher_df <- do.call(cbind.data.frame, coherence_scores) %>%
+  dplyr::reframe(Coherence = unname(rowMeans(., na.rm = TRUE)),
+                 Coherence_Core = unname(rowMeans(.[, c("P5219", "P5624", "P5709", "P5418", "P5659", "P5909")], na.rm = TRUE)),
+                 Coherence_Margin = unname(rowMeans(.[, c("P5448", "P5707", "P5666", "P5684", "P5692", "P5710", "P5764", "P5766", "P5767", "P5756")], na.rm = TRUE)),
+                 Coherence_HPVposMargin = unname(rowMeans(.[, c("P5692", "P5710", "P5764", "P5766", "P5767")], na.rm = TRUE)),
+                 Coherence_HPVnegMargin = unname(rowMeans(.[, c("P5448", "P5707", "P5666", "P5684", "P5756")], na.rm = TRUE)),
+                 Coherence_HPVpos = unname(rowMeans(.[, c("P5636", "P5692", "P5710", "P5735", "P5764", "P5766", "P5767", "P5903")], na.rm = TRUE)),
+                 Coherence_HPVneg = unname(rowMeans(.[, c("P5219", "P5448", "P5624", "P5707", "P5709", "P5736", "P5217", "P5418", "P5456", "P5612", "P5659", "P5666", "P5684", "P5909", "P5751", "P5756")], na.rm = TRUE))) %>% 
+  dplyr::mutate(State = states, .before = 1) %>% 
+  dplyr::mutate(State = stringr::str_replace_all(State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
+group_props_df <- group_props_df %>% dplyr::left_join(mp_coher_df, by = "State")
+# write.csv(group_props_df, file = here("results/Generated_Data/Node_Abundance_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
