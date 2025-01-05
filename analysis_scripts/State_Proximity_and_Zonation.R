@@ -905,3 +905,4 @@ mp_coher_df <- do.call(cbind.data.frame, coherence_scores) %>%
   dplyr::mutate(State = stringr::str_replace_all(State, pattern = "TNF_Signaling", replacement = "Inflammatory"))
 group_props_df <- group_props_df %>% dplyr::left_join(mp_coher_df, by = "State")
 # write.csv(group_props_df, file = here("results/Generated_Data/Node_Abundance_Neighborhood_Network_corrected.csv"), row.names = FALSE, na = '', quote = FALSE)
+
